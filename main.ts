@@ -47,12 +47,31 @@ export default class TabFilePathPlugin extends Plugin {
 
     setTabTitles() {
         const leaves = this.app.workspace.getLeavesOfType('markdown');
-        for (const leaf of leaves) {
-            this.setLeafTitle(leaf);
+
+        const leafFileNames = leaves.map(leaf => {
+            const path = this.getLeafName(leaf);
+            const parts = path.split('/').filter(Boolean);
+            return parts[parts.length - 1] ?? '';
+        });
+
+        const fileNameCounts: Record<string, number> = {};
+        for (const name of leafFileNames) {
+            fileNameCounts[name] = (fileNameCounts[name] ?? 0) + 1;
         }
+
+        leaves.forEach((leaf, ii) => {
+            if (fileNameCounts[leafFileNames[ii]] > 1) {
+                this.setLeafTitle(leaf, this.getLeafName(leaf));
+            }
+        });
     }
 
-    setLeafTitle(leaf: WorkspaceLeaf) {
+    getLeafName(leaf: WorkspaceLeaf): string {
+        const filePath = (leaf.isDeferred) ? leaf.view.state.file : leaf.view.file.path;
+        return filePath.toLowerCase().endsWith('.md') ? filePath.slice(0, -3) : filePath;
+    }
+
+    setLeafTitle(leaf: WorkspaceLeaf, title: string) {
         // Note to self about related properties available depending on
         // the state of leaf.isDeferred:
         //
@@ -66,11 +85,8 @@ export default class TabFilePathPlugin extends Plugin {
         //     leaf.view.titleEl
         //     leaf.view.titleContainerEl
         // }
-        const path = (leaf.isDeferred) ? leaf.view.state.file : leaf.view.file.path;
-        const label = (path.toLowerCase().endsWith('.md')) ? path.slice(0, -3) : path;
-
-        leaf.tabHeaderEl.setAttribute('aria-label', label);
-        leaf.tabHeaderInnerTitleEl.innerText = label;
+        leaf.tabHeaderEl.setAttribute('aria-label', title);
+        leaf.tabHeaderInnerTitleEl.innerText = title;
         leaf.tabHeaderInnerTitleEl.classList.add('tab__title');
     }
 }

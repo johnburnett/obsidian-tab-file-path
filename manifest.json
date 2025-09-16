@@ -1,7 +1,7 @@
 {
     "id": "tab-file-path",
     "name": "Tab File Path",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "minAppVersion": "1.8.10",
     "description": "Shows file paths in tabs",
     "author": "John Burnett",
